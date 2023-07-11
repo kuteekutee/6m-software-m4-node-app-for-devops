@@ -1,6 +1,9 @@
 version: 2.1
 orbs:
   node: circleci/node@5.0.1
+  docker: circleci/docker@2.2.0
+
+
 jobs:
   build:
     docker:
@@ -30,3 +33,8 @@ workflows:
       - test:
           requires:
             - build
+  build-and-publish-docker-image:
+    jobs:
+      - docker/publish:
+          image: kuteekutee/6m-software-m4-node-app-for-devops
+          use-docker-credentials-store: true 
