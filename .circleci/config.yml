@@ -7,7 +7,7 @@ executors:
     environment:
       IMAGE_NAME: jiaboeng/education-space
     docker: 
-      - image: circleci/node:latest
+      - image: circleci/node:v1
         auth:
             username: $DOCKERHUB_USERNAME
             password: $DOCKERHUB_PASSWORD
