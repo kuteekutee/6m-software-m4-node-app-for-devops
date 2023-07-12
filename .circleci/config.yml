@@ -2,7 +2,15 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.2.0
-
+executors:
+  docker-publisher: 
+    environment:
+      IMAGE_NAME: jiaboeng/education-space
+    docker: 
+      - image: circleci/node:latest
+        auth:
+            username: $DOCKERHUB_USERNAME
+            password: $DOCKERHUB_PASSWORD
 jobs:
   build:
     docker:
@@ -24,6 +32,19 @@ jobs:
       - run: |
           echo "Running tests..."
           npm run test
+  publishToHub:
+    executor: docker-publisher
+ 
+    steps: 
+      - checkout
+      - setup_remote_docker
+      - run: 
+          name: Publish Docker Image to Docker Hub
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker build -t $IMAGE_NAME .
+            docker push $IMAGE_NAME:v1
+
 
 workflows:
   simple_workflow:
@@ -32,6 +53,6 @@ workflows:
       - test:
           requires:
             - build
-      - docker/publish:
-          image: kuteekutee/6m-software-m4-node-app-for-devops
-          use-docker-credentials-store: true 
+      - publishToHub:
+          requires:
+            - test
