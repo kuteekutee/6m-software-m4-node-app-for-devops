@@ -32,10 +32,10 @@ jobs:
       - docker/check
       - docker/build:
           image: jiaboeng/education-space
-          tag: 0.1.0
+          tag: $CIRCLE_TAG
       - docker/push:  
           image: jiaboeng/education-space
-          tag: 0.1.0
+          tag: $CIRCLE_TAG
   deploy:
         docker:
         - image: cimg/node:16.10
