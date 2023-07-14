@@ -26,18 +26,19 @@ jobs:
           npm run test
   build-and-push:
     executor: docker/docker
-    environment:
-      CIRCLE_TAG: << pipeline.git.tag >>
+    
     steps:
       - setup_remote_docker
       - checkout
       - docker/check
+      - run:
+          command: export TAG = << pipeline.git.tag >>
       - docker/build:
           image: jiaboeng/education-space
-          tag: $CIRCLE_TAG
+          tag: $TAG
       - docker/push:  
           image: jiaboeng/education-space
-          tag: $CIRCLE_TAG
+          tag: $TAG
   deploy:
         docker:
         - image: cimg/node:16.10
