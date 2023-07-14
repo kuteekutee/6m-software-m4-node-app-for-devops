@@ -32,7 +32,8 @@ jobs:
       - checkout
       - docker/check
       - run:
-          command: export TAG = << pipeline.git.tag >>
+          command: |
+          export TAG=<< pipeline.git.tag >>
       - docker/build:
           image: jiaboeng/education-space
           tag: $TAG
