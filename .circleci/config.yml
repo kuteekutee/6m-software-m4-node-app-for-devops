@@ -25,23 +25,24 @@ jobs:
           echo "Running tests..."
           npm run test
   build-and-push:
-    executor: docker/docker
-    
+    docker: 
+      - image : circle/node:16.0
     steps:
       - setup_remote_docker
       - checkout
       - docker/check
-      - docker/build:
-          image: jiaboeng/education-space
-          tag: << pipeline.git.tag >>
-      - docker/push:  
-          image: jiaboeng/education-space
-          tag: << pipeline.git.tag >>
+      - run:
+          name: Building Docker image
+          command: docker build --file=./Dockerfile --tag=docker.io/jiaboeng/education-space:${CIRCLE_SHA1} . ## Build the Docker image and tag it with the CIRCLE_SHA1 environment variable
+      - run:
+          name: Pushing Docker image
+          command: docker push docker.io/jiaboeng/education-space:${CIRCLE_SHA1} ## Build the Docker image and tag it with the CIRCLE_SHA1 environment variable
+      
   deploy:
         docker:
-        - image: cimg/node:16.10
+          - image: cimg/node:16.10
         steps:
-        - setup_remote_docker      
+         - setup_remote_docker      
         - heroku/install
         - checkout
         - run:
@@ -55,18 +56,13 @@ workflows:
   simple_workflow:
     jobs:
       - build
-      - test:
-          requires:
-            - build
-      - build-and-push:
-          requires:
-            - test
           filters:
-            tags:
-              only: /^(\d+\.)?(\d+\.)?(\*|\d+)$/
-            branches: 
-              only: main
-      - deploy:
-          requires:
-            - build-and-push
+            branches:
+              only:
+                - main
+      - test:
+          filters:
+            branches:
+              only:
+                - main
           
