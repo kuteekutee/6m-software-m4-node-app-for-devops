@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.1.4
-  heroku: circleci/heroku@2.0.0
+  snyk: snyk/snyk@1.5.0
 jobs:
   build:
     docker:
@@ -24,45 +24,27 @@ jobs:
       - run: |
           echo "Running tests..."
           npm run test
-  build-and-push:
-    docker: 
-      - image : circle/node:16.0
+  scan:
+    docker:
+        - image: cimg/node:16.10
+    environment:
+        IMAGE_NAME: jiaboeng/education-space
     steps:
-      - setup_remote_docker
-      - checkout
-      - docker/check
-      - run:
-          name: Building Docker image
-          command: docker build --file=./Dockerfile --tag=docker.io/jiaboeng/education-space:${CIRCLE_SHA1} . ## Build the Docker image and tag it with the CIRCLE_SHA1 environment variable
-      - run:
-          name: Pushing Docker image
-          command: docker push docker.io/jiaboeng/education-space:${CIRCLE_SHA1} ## Build the Docker image and tag it with the CIRCLE_SHA1 environment variable
-      
-  deploy:
-        docker:
-          - image: cimg/node:16.10
-        steps:
-         - setup_remote_docker      
-        - heroku/install
         - checkout
-        - run:
-            name: Heroku Container Push
-            command: | 
-                heroku container:login
-                heroku container:push web -a bernardsng-su-devops
-                heroku container:release web -a bernardsng-su-devops 
+        - setup_remote_docker      
+        - docker/check
+        - run: docker build -t $IMAGE_NAME .
+        - snyk/scan: 
+            docker-image-name: $IMAGE_NAME
 
 workflows:
   simple_workflow:
     jobs:
       - build
-          filters:
-            branches:
-              only:
-                - main
       - test:
-          filters:
-            branches:
-              only:
-                - main
+          requires:
+            - build
+      - scan:
+          requires:
+            - build
           
